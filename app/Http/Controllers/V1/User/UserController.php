@@ -71,7 +71,8 @@ class UserController extends Controller
                 $user->password_algo,
                 $user->password_salt,
                 $request->input('old_password'),
-                $user->password
+                $user->password,
+                $user->email
             )
         ) {
             return $this->fail([400, __('The old password is wrong')]);

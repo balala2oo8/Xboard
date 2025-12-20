@@ -28,6 +28,7 @@ storage/update_pending
 storage/laravels-timer-process.pid
 cli-php.ini
 frontend
+admin
 docker-compose.yaml
 bun.lockb
 compose.yaml

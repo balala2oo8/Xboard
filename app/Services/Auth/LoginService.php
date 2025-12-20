@@ -47,7 +47,8 @@ class LoginService
                 $user->password_algo,
                 $user->password_salt,
                 $password,
-                $user->password
+                $user->password,
+                $email
             )
         ) {
             // 增加密码错误计数
