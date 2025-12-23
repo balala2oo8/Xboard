@@ -28,6 +28,7 @@ class ConfigSave extends FormRequest
         'app_name' => '',
         'app_description' => '',
         'app_url' => 'nullable|url',
+        'web_url' => 'nullable|url',
         'subscribe_url' => 'nullable',
         'try_out_enable' => '',
         'try_out_plan_id' => 'integer',
@@ -125,6 +126,7 @@ class ConfigSave extends FormRequest
         // illiteracy prompt
         return [
             'app_url.url' => '站点URL格式不正确，必须携带http(s)://',
+            'web_url.url' => '前端URL格式不正确，必须携带http(s)://',
             'subscribe_url.url' => '订阅URL格式不正确，必须携带http(s)://',
             'server_token.min' => '通讯密钥长度必须大于16位',
             'tos_url.url' => '服务条款URL格式不正确，必须携带http(s)://',
