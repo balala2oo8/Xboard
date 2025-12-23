@@ -13,6 +13,7 @@ class CommController extends Controller
     public function config()
     {
         $data = [
+            'stop_register' => (int) admin_setting('stop_register', 0) ? 1 : 0,
             'tos_url' => admin_setting('tos_url'),
             'is_email_verify' => (int) admin_setting('email_verify', 0) ? 1 : 0,
             'is_invite_force' => (int) admin_setting('invite_force', 0) ? 1 : 0,
@@ -27,6 +28,7 @@ class CommController extends Controller
             'turnstile_site_key' => admin_setting('turnstile_site_key'),
             'app_description' => admin_setting('app_description'),
             'app_url' => admin_setting('app_url'),
+            'web_url' => admin_setting('web_url'),            
             'logo' => admin_setting('logo'),
             // 保持向后兼容
             'is_recaptcha' => (int) admin_setting('captcha_enable', 0) ? 1 : 0,

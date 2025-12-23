@@ -116,7 +116,7 @@ class TicketService
                 'template_name' => 'notify',
                 'template_value' => [
                     'name' => admin_setting('app_name', 'XBoard'),
-                    'url' => admin_setting('app_url'),
+                    'url' => admin_setting('web_url') ?? admin_setting('app_url'),
                     'content' => "主题：{$ticket->subject}\r\n回复内容：{$ticketMessage->message}"
                 ]
             ]);

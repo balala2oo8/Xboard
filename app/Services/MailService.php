@@ -155,7 +155,7 @@ class MailService
             'template_name' => 'remindTraffic',
             'template_value' => [
                 'name' => admin_setting('app_name', 'XBoard'),
-                'url' => admin_setting('app_url')
+                'url' => admin_setting('web_url') ?? admin_setting('app_url')
             ]
         ]);
     }
@@ -174,7 +174,7 @@ class MailService
             'template_name' => 'remindExpire',
             'template_value' => [
                 'name' => admin_setting('app_name', 'XBoard'),
-                'url' => admin_setting('app_url')
+                'url' => admin_setting('web_url') ?? admin_setting('app_url')
             ]
         ]);
     }

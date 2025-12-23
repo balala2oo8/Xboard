@@ -448,7 +448,7 @@ class UserController extends Controller
         $content = $request->input('content');
         $templateValue = [
             'name' => admin_setting('app_name', 'XBoard'),
-            'url' => admin_setting('app_url'),
+            'url' => admin_setting('web_url') ?? admin_setting('app_url'),
             'content' => $content
         ];
 

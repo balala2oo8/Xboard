@@ -39,7 +39,7 @@ class MailLinkService
 
         $redirectUrl = '/#/login?verify=' . $code . '&redirect=' . ($redirect ? $redirect : 'dashboard');
         if (admin_setting('app_url')) {
-            $link = admin_setting('app_url') . $redirectUrl;
+            $link = (admin_setting('web_url') ?? admin_setting('app_url')) . $redirectUrl;
         } else {
             $link = url($redirectUrl);
         }
@@ -67,7 +67,7 @@ class MailLinkService
             'template_value' => [
                 'name' => admin_setting('app_name', 'XBoard'),
                 'link' => $link,
-                'url' => admin_setting('app_url')
+                'url' => admin_setting('web_url') ?? admin_setting('app_url')
             ]
         ]);
     }

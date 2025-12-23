@@ -105,7 +105,7 @@ class Clash extends AbstractProtocol
             ->header('subscription-userinfo', "upload={$user['u']}; download={$user['d']}; total={$user['transfer_enable']}; expire={$user['expired_at']}")
             ->header('profile-update-interval', '24')
             ->header('content-disposition', 'attachment;filename*=UTF-8\'\'' . rawurlencode($appName))
-            ->header('profile-web-page-url', admin_setting('app_url'));
+            ->header('profile-web-page-url', admin_setting('web_url') ?? admin_setting('app_url'));
     }
 
     /**

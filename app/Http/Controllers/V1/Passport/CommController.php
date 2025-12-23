@@ -53,7 +53,7 @@ class CommController extends Controller
             'template_value' => [
                 'name' => admin_setting('app_name', 'XBoard'),
                 'code' => $code,
-                'url' => admin_setting('app_url')
+                'url' => admin_setting('web_url') ?? admin_setting('app_url')
             ]
         ]);
 

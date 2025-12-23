@@ -50,7 +50,7 @@ class ConfigController extends Controller
             'template_value' => [
                 'name' => admin_setting('app_name', 'XBoard'),
                 'content' => 'This is xboard test email',
-                'url' => admin_setting('app_url')
+                'url' => admin_setting('web_url') ?? admin_setting('app_url')
             ]
         ]);
         return response([
@@ -125,6 +125,7 @@ class ConfigController extends Controller
                 'app_name' => admin_setting('app_name', 'XBoard'),
                 'app_description' => admin_setting('app_description', 'XBoard is best!'),
                 'app_url' => admin_setting('app_url'),
+                'web_url' => admin_setting('web_url'),
                 'subscribe_url' => admin_setting('subscribe_url'),
                 'try_out_plan_id' => (int) admin_setting('try_out_plan_id', 0),
                 'try_out_hour' => (int) admin_setting('try_out_hour', 1),

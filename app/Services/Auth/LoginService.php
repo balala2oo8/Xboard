@@ -145,7 +145,7 @@ class LoginService
         $loginRedirect = '/#/login?verify=' . $code . '&redirect=' . rawurlencode($redirect);
 
         if (admin_setting('app_url')) {
-            $url = admin_setting('app_url') . $loginRedirect;
+            $url = (admin_setting('web_url') ?? admin_setting('app_url')) . $loginRedirect;
         } else {
             $url = url($loginRedirect);
         }
