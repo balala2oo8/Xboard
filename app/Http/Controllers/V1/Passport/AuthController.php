@@ -95,7 +95,7 @@ class AuthController extends Controller
 
             return redirect()->to(
                 admin_setting('app_url')
-                    ? (admin_setting('web_url') ?? admin_setting('app_url')) . $redirect
+                    ? admin_setting('app_url') . $redirect
                     : url($redirect)
             );
         }

@@ -38,6 +38,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int|null $last_login_at 最后登录时间
  * @property int|null $parent_id 父账户ID
  * @property int|null $is_admin 是否管理员
+ * @property int|null $is_staff 是否员工
  * @property int|null $next_reset_at 下次流量重置时间
  * @property int|null $last_reset_at 上次流量重置时间
  * @property int|null $telegram_id Telegram ID
