@@ -26,11 +26,12 @@ class AdminRoute
     {
         $router->group([
             'prefix' => admin_setting('secure_path', admin_setting('frontend_admin_path', hash('crc32b', config('app.key')))),
-            'middleware' => ['admin', 'log'],
+            'middleware' => ['user', 'log'],
         ], function ($router) {
             // Config
             $router->group([
-                'prefix' => 'config'
+                'prefix' => 'config',
+                'middleware' => ['role:admin']
             ], function ($router) {
                 $router->get('/fetch', [ConfigController::class, 'fetch']);
                 $router->post('/save', [ConfigController::class, 'save']);
@@ -42,9 +43,15 @@ class AdminRoute
 
             // Plan
             $router->group([
-                'prefix' => 'plan'
+                'prefix' => 'plan',
+                'middleware' => ['role:admin,staff']
             ], function ($router) {
                 $router->get('/fetch', [PlanController::class, 'fetch']);
+            });
+            $router->group([
+                'prefix' => 'plan',
+                'middleware' => ['role:admin']
+            ], function ($router) {
                 $router->post('/save', [PlanController::class, 'save']);
                 $router->post('/drop', [PlanController::class, 'drop']);
                 $router->post('/update', [PlanController::class, 'update']);
@@ -53,21 +60,29 @@ class AdminRoute
 
             // Server
             $router->group([
-                'prefix' => 'server/group'
+                'prefix' => 'server/group',
+                'middleware' => ['role:admin,staff']
             ], function ($router) {
                 $router->get('/fetch', [GroupController::class, 'fetch']);
+            });
+            $router->group([
+                'prefix' => 'server/group',
+                'middleware' => ['role:admin']
+            ], function ($router) {
                 $router->post('/save', [GroupController::class, 'save']);
                 $router->post('/drop', [GroupController::class, 'drop']);
             });
             $router->group([
-                'prefix' => 'server/route'
+                'prefix' => 'server/route',
+                'middleware' => ['role:admin']
             ], function ($router) {
                 $router->get('/fetch', [RouteController::class, 'fetch']);
                 $router->post('/save', [RouteController::class, 'save']);
                 $router->post('/drop', [RouteController::class, 'drop']);
             });
             $router->group([
-                'prefix' => 'server/manage'
+                'prefix' => 'server/manage',
+                'middleware' => ['role:admin']
             ], function ($router) {
                 $router->get('/getNodes', [ManageController::class, 'getNodes']);
                 $router->post('/sort', [ManageController::class, 'sort']);
@@ -75,7 +90,8 @@ class AdminRoute
 
             // 节点更新接口
             $router->group([
-                'prefix' => 'server/manage'
+                'prefix' => 'server/manage',
+                'middleware' => ['role:admin']
             ], function ($router) {
                 $router->post('/update', [ManageController::class, 'update']);
                 $router->post('/save', [ManageController::class, 'save']);
@@ -86,7 +102,8 @@ class AdminRoute
 
             // Order
             $router->group([
-                'prefix' => 'order'
+                'prefix' => 'order',
+                'middleware' => ['role:admin,staff']
             ], function ($router) {
                 $router->any('/fetch', [OrderController::class, 'fetch']);
                 $router->post('/update', [OrderController::class, 'update']);
@@ -98,38 +115,53 @@ class AdminRoute
 
             // User
             $router->group([
-                'prefix' => 'user'
+                'prefix' => 'user',
+                'middleware' => ['role:admin,staff']
             ], function ($router) {
                 $router->any('/fetch', [UserController::class, 'fetch']);
-                $router->post('/update', [UserController::class, 'update']);
                 $router->get('/getUserInfoById', [UserController::class, 'getUserInfoById']);
+                $router->post('/resetSecret', [UserController::class, 'resetSecret']);
+                $router->post('/setInviteUser', [UserController::class, 'setInviteUser']);
+            });
+
+            // User (Admin only)
+            $router->group([
+                'prefix' => 'user',
+                'middleware' => ['role:admin']
+            ], function ($router) {
+                $router->post('/update', [UserController::class, 'update']);
                 $router->post('/generate', [UserController::class, 'generate']);
                 $router->post('/dumpCSV', [UserController::class, 'dumpCSV']);
                 $router->post('/sendMail', [UserController::class, 'sendMail']);
                 $router->post('/ban', [UserController::class, 'ban']);
-                $router->post('/resetSecret', [UserController::class, 'resetSecret']);
-                $router->post('/setInviteUser', [UserController::class, 'setInviteUser']);
                 $router->post('/destroy', [UserController::class, 'destroy']);
             });
 
             // Stat
             $router->group([
-                'prefix' => 'stat'
+                'prefix' => 'stat',
+                'middleware' => ['role:admin']
             ], function ($router) {
                 $router->get('/getOverride', [StatController::class, 'getOverride']);
                 $router->get('/getStats', [StatController::class, 'getStats']);
                 $router->get('/getServerLastRank', [StatController::class, 'getServerLastRank']);
                 $router->get('/getServerYesterdayRank', [StatController::class, 'getServerYesterdayRank']);
                 $router->get('/getOrder', [StatController::class, 'getOrder']);
-                $router->any('/getStatUser', [StatController::class, 'getStatUser']);
                 $router->get('/getRanking', [StatController::class, 'getRanking']);
                 $router->get('/getStatRecord', [StatController::class, 'getStatRecord']);
                 $router->get('/getTrafficRank', [StatController::class, 'getTrafficRank']);
             });
+            $router->group([
+                'prefix' => 'stat',
+                'middleware' => ['role:admin,staff']
+            ], function ($router) {
+                $router->any('/getStatUser', [StatController::class, 'getStatUser']);
+            });
 
             // Notice
             $router->group([
-                'prefix' => 'notice'
+                'prefix' => 'notice',
+                'middleware' => ['role:admin']
             ], function ($router) {
                 $router->get('/fetch', [NoticeController::class, 'fetch']);
                 $router->post('/save', [NoticeController::class, 'save']);
@@ -141,7 +173,8 @@ class AdminRoute
 
             // Ticket
             $router->group([
-                'prefix' => 'ticket'
+                'prefix' => 'ticket',
+                'middleware' => ['role:admin,staff']
             ], function ($router) {
                 $router->any('/fetch', [TicketController::class, 'fetch']);
                 $router->post('/reply', [TicketController::class, 'reply']);
@@ -150,7 +183,8 @@ class AdminRoute
 
             // Coupon
             $router->group([
-                'prefix' => 'coupon'
+                'prefix' => 'coupon',
+                'middleware' => ['role:admin']
             ], function ($router) {
                 $router->any('/fetch', [CouponController::class, 'fetch']);
                 $router->post('/generate', [CouponController::class, 'generate']);
@@ -161,7 +195,8 @@ class AdminRoute
 
             // Gift Card
             $router->group([
-                'prefix' => 'gift-card'
+                'prefix' => 'gift-card',
+                'middleware' => ['role:admin']
             ], function ($router) {
                 // Template management
                 $router->any('/templates', [GiftCardController::class, 'templates']);
@@ -187,7 +222,8 @@ class AdminRoute
 
             // Knowledge
             $router->group([
-                'prefix' => 'knowledge'
+                'prefix' => 'knowledge',
+                'middleware' => ['role:admin']
             ], function ($router) {
                 $router->get('/fetch', [KnowledgeController::class, 'fetch']);
                 $router->get('/getCategory', [KnowledgeController::class, 'getCategory']);
@@ -199,7 +235,8 @@ class AdminRoute
 
             // Payment  
             $router->group([
-                'prefix' => 'payment'
+                'prefix' => 'payment',
+                'middleware' => ['role:admin']
             ], function ($router) {
                 $router->get('/fetch', [PaymentController::class, 'fetch']);
                 $router->get('/getPaymentMethods', [PaymentController::class, 'getPaymentMethods']);
@@ -212,7 +249,8 @@ class AdminRoute
 
             // System
             $router->group([
-                'prefix' => 'system'
+                'prefix' => 'system',
+                'middleware' => ['role:admin']
             ], function ($router) {
                 $router->get('/getSystemStatus', [SystemController::class, 'getSystemStatus']);
                 $router->get('/getQueueStats', [SystemController::class, 'getQueueStats']);
@@ -234,7 +272,8 @@ class AdminRoute
 
             // Theme
             $router->group([
-                'prefix' => 'theme'
+                'prefix' => 'theme',
+                'middleware' => ['role:admin']
             ], function ($router) {
                 $router->get('/getThemes', [ThemeController::class, 'getThemes']);
                 $router->post('/upload', [ThemeController::class, 'upload']);
@@ -245,7 +284,8 @@ class AdminRoute
 
             // Plugin
             $router->group([
-                'prefix' => 'plugin'
+                'prefix' => 'plugin',
+                'middleware' => ['role:admin']
             ], function ($router) {
                 $router->get('/types', [\App\Http\Controllers\V2\Admin\PluginController::class, 'types']);
                 $router->get('/getPlugins', [\App\Http\Controllers\V2\Admin\PluginController::class, 'index']);
@@ -262,7 +302,8 @@ class AdminRoute
 
             // 流量重置管理
             $router->group([
-                'prefix' => 'traffic-reset'
+                'prefix' => 'traffic-reset',
+                'middleware' => ['role:admin,staff']
             ], function ($router) {
                 $router->get('logs', [TrafficResetController::class, 'logs']);
                 $router->get('stats', [TrafficResetController::class, 'stats']);
