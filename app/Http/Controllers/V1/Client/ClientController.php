@@ -205,15 +205,19 @@ class ClientController extends Controller
         $remainingTraffic = Helper::trafficConvert($totalTraffic - $useTraffic);
         $expiredDate = $user['expired_at'] ? date('Y-m-d', $user['expired_at']) : __('长期有效');
         $userService = new UserService();
+        $appUrl = parse_url(admin_setting('web_url') ?? admin_setting('app_url'), PHP_URL_HOST);;
         $resetDay = $userService->getResetDay($user);
+        array_unshift($servers, array_merge($servers[0], [
+            'name' => "唯一地址：{$appUrl}",
+        ]));
         array_unshift($servers, array_merge($servers[0], [
             'name' => "套餐到期：{$expiredDate}",
         ]));
-        if ($resetDay) {
-            array_unshift($servers, array_merge($servers[0], [
-                'name' => "距离下次重置剩余：{$resetDay} 天",
-            ]));
-        }
+        // if ($resetDay) {
+        //     array_unshift($servers, array_merge($servers[0], [
+        //         'name' => "距离下次重置剩余：{$resetDay} 天",
+        //     ]));
+        // }
         array_unshift($servers, array_merge($servers[0], [
             'name' => "剩余流量：{$remainingTraffic}",
         ]));

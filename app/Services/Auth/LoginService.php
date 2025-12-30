@@ -3,6 +3,7 @@
 namespace App\Services\Auth;
 
 use App\Models\User;
+use App\Services\AuthService;
 use App\Services\Plugin\HookManager;
 use App\Utils\CacheKey;
 use App\Utils\Helper;
@@ -109,13 +110,17 @@ class LoginService
         $user->password = password_hash($password, PASSWORD_DEFAULT);
         $user->password_algo = NULL;
         $user->password_salt = NULL;
-
+        
         if (!$user->save()) {
             return [false, [500, __('Reset failed')]];
         }
-
+        
+        // 踢出所有会话
+        $authService = new AuthService($user);
+        $authService->removeAllSessions();
+        
         HookManager::call('user.password.reset.after', $user);
-
+        
         // 清除邮箱验证码
         Cache::forget(CacheKey::get('EMAIL_VERIFY_CODE', $email));
 

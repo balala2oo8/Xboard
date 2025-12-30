@@ -83,6 +83,9 @@ class UserController extends Controller
         if (!$user->save()) {
             return $this->fail([400, __('Save failed')]);
         }
+        // 登出所有会话
+        $authService = new AuthService($user);
+        $authService->removeAllSessions();
         return $this->success(true);
     }
 

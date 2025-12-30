@@ -21,7 +21,7 @@ class AuthService
         $token = $this->user->createToken(
             Str::random(20), // token name (device identifier)
             ['*'], // abilities
-            now()->addYear() // expiration
+            now()->addDays(7) // expiration
         );
 
         // Format token: remove ID prefix and add Bearer
