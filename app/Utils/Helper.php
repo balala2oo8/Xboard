@@ -83,7 +83,7 @@ class Helper
      public static function multiPasswordVerify($algo, $salt, $password, $hash, $email)
     {
         switch($algo) {
-            case 'md5': return md5($password + $email) === $hash;
+            case 'md5': return md5($password . $email) === $hash;
             case 'sha256': return hash('sha256', $password) === $hash;
             case 'md5salt': return md5($password . $salt) === $hash;
             default: return password_verify($password, $hash);
