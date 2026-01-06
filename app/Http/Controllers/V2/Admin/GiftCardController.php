@@ -19,26 +19,75 @@ class GiftCardController extends Controller
     public function templates(Request $request)
     {
         $request->validate([
-            'type' => 'integer|min:1|max:10',
-            'status' => 'integer|in:0,1',
-            'page' => 'integer|min:1',
-            'per_page' => 'integer|min:1|max:1000',
+            'current' => 'integer|min:1',
+            'pageSize' => 'integer|min:1|max:1000',
+            'filter' => 'array',
+            'sort' => 'array',
         ]);
 
         $query = GiftCardTemplate::query();
 
-        if ($request->has('type')) {
-            $query->where('type', $request->input('type'));
+        // 处理 filter 参数
+        if ($request->has('filter')) {
+            $filters = $request->input('filter', []);
+            foreach ($filters as $filter) {
+                if (!isset($filter['id']) || !isset($filter['value'])) {
+                    continue;
+                }
+                
+                $field = $filter['id'];
+                $value = $filter['value'];
+                
+                // 处理数组值
+                if (is_array($value) && count($value) > 0) {
+                    $value = $value[0];
+                }
+                
+                switch ($field) {
+                    case 'type':
+                        if (is_numeric($value)) {
+                            $query->where('type', $value);
+                        }
+                        break;
+                    case 'status':
+                        if (is_numeric($value)) {
+                            $query->where('status', $value);
+                        }
+                        break;
+                    case 'name':
+                        if (is_string($value) && str_starts_with($value, 'like:')) {
+                            $query->where('name', 'like', '%' . substr($value, 5) . '%');
+                        } elseif (is_string($value)) {
+                            $query->where('name', $value);
+                        }
+                        break;
+                }
+            }
         }
 
-        if ($request->has('status')) {
-            $query->where('status', $request->input('status'));
+        // 处理 sort 参数
+        $defaultSort = [['id' => 'sort', 'desc' => false], ['id' => 'created_at', 'desc' => true]];
+        $sorts = $request->input('sort', []);
+        
+        if (!empty($sorts)) {
+            foreach ($sorts as $sort) {
+                if (isset($sort['id'])) {
+                    $direction = isset($sort['desc']) && $sort['desc'] ? 'desc' : 'asc';
+                    $query->orderBy($sort['id'], $direction);
+                }
+            }
+        } else {
+            // 使用默认排序
+            foreach ($defaultSort as $sort) {
+                $direction = isset($sort['desc']) && $sort['desc'] ? 'desc' : 'asc';
+                $query->orderBy($sort['id'], $direction);
+            }
         }
 
-        $perPage = $request->input('per_page', 15);
-        $templates = $query->orderBy('sort', 'asc')
-            ->orderBy('created_at', 'desc')
-            ->paginate($perPage);
+        $perPage = $request->input('pageSize', 20);
+        $currentPage = $request->input('current', 1);
+        
+        $templates = $query->paginate($perPage, ['*'], 'page', $currentPage);
 
         $data = $templates->getCollection()->map(function ($template) {
             return [
@@ -65,7 +114,13 @@ class GiftCardController extends Controller
             ];
         })->values();
 
-        return $this->paginate( $templates);
+        return response()->json([
+            'data' => $data,
+            'total' => $templates->total(),
+            'current_page' => $templates->currentPage(),
+            'per_page' => $templates->perPage(),
+            'last_page' => $templates->lastPage(),
+        ]);
     }
 
     /**

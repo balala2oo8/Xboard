@@ -17,8 +17,7 @@ class UniProxyController extends Controller
 {
     public function __construct(
         private readonly UserOnlineService $userOnlineService
-    ) {
-    }
+    ) {}
 
     /**
      * 获取当前请求的节点信息
@@ -59,7 +58,9 @@ class UniProxyController extends Controller
             return is_array($item)
                 && count($item) === 2
                 && is_numeric($item[0])
-                && is_numeric($item[1]);
+                && is_numeric($item[1])
+                // 下载大于1KB就保留，过滤掉延迟测试产生的小数据
+                && ($item[1] >= 1024);
         });
         if (empty($data)) {
             return $this->success(true);
@@ -109,10 +110,10 @@ class UniProxyController extends Controller
                 'plugin' => $protocolSettings['plugin'],
                 'plugin_opts' => $protocolSettings['plugin_opts'],
                 'server_key' => match ($protocolSettings['cipher']) {
-                        '2022-blake3-aes-128-gcm' => Helper::getServerKey($node->created_at, 16),
-                        '2022-blake3-aes-256-gcm' => Helper::getServerKey($node->created_at, 32),
-                        default => null
-                    }
+                    '2022-blake3-aes-128-gcm' => Helper::getServerKey($node->created_at, 16),
+                    '2022-blake3-aes-256-gcm' => Helper::getServerKey($node->created_at, 32),
+                    default => null
+                }
             ],
             'vmess' => [
                 ...$baseConfig,
@@ -128,10 +129,10 @@ class UniProxyController extends Controller
                 'tls' => (int) $protocolSettings['tls'],
                 'flow' => $protocolSettings['flow'],
                 'tls_settings' =>
-                        match ((int) $protocolSettings['tls']) {
-                            2 => $protocolSettings['reality_settings'],
-                            default => $protocolSettings['tls_settings']
-                        }
+                match ((int) $protocolSettings['tls']) {
+                    2 => $protocolSettings['reality_settings'],
+                    default => $protocolSettings['tls_settings']
+                }
             ],
             'hysteria' => [
                 ...$baseConfig,
@@ -142,13 +143,13 @@ class UniProxyController extends Controller
                 'up_mbps' => (int) $protocolSettings['bandwidth']['up'],
                 'down_mbps' => (int) $protocolSettings['bandwidth']['down'],
                 ...match ((int) $protocolSettings['version']) {
-                        1 => ['obfs' => $protocolSettings['obfs']['password'] ?? null],
-                        2 => [
-                            'obfs' => $protocolSettings['obfs']['open'] ? $protocolSettings['obfs']['type'] : null,
-                            'obfs-password' => $protocolSettings['obfs']['password'] ?? null
-                        ],
-                        default => []
-                    }
+                    1 => ['obfs' => $protocolSettings['obfs']['password'] ?? null],
+                    2 => [
+                        'obfs' => $protocolSettings['obfs']['open'] ? $protocolSettings['obfs']['type'] : null,
+                        'obfs-password' => $protocolSettings['obfs']['password'] ?? null
+                    ],
+                    default => []
+                }
             ],
             'tuic' => [
                 ...$baseConfig,
