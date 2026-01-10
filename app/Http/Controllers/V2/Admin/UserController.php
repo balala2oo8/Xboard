@@ -11,6 +11,7 @@ use App\Models\Plan;
 use App\Models\User;
 use App\Services\AuthService;
 use App\Services\UserService;
+use App\Services\UserOnlineService;
 use App\Traits\QueryOperators;
 use App\Utils\Helper;
 use Illuminate\Database\Eloquent\Builder;
@@ -515,5 +516,40 @@ class UserController extends Controller
             Log::error($e);
             return $this->fail([500, '删除失败']);
         }
+    }
+
+    /**
+     * 根据用户ID获取在线IP信息
+     * 
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getUserOnlineIps(Request $request)
+    {                
+        // 验证请求参数
+        $request->validate([
+            'user_id' => 'required|integer|min:1'
+        ]);
+
+        $userId = (int) $request->input('user_id');
+
+        // 检查用户是否存在
+        //$user = User::find($userId);
+        //if (!$user) {
+        //    return $this->fail([404, '用户不存在']);
+        //}
+
+        // 尝试从缓存获取
+        $result = UserOnlineService::getUserDevices($userId);
+
+        // 组装返回数据
+        $data = [
+            'user_id' => $userId,
+            'device_limit_mode' => admin_setting('device_limit_mode', 0),
+            'online_count' => $result['total_count'],
+            'devices' => $result['devices']
+        ];
+
+        return $this->success($data);
     }
 }

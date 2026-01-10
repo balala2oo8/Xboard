@@ -122,6 +122,7 @@ class AdminRoute
                 $router->get('/getUserInfoById', [UserController::class, 'getUserInfoById']);
                 $router->post('/resetSecret', [UserController::class, 'resetSecret']);
                 $router->post('/setInviteUser', [UserController::class, 'setInviteUser']);
+                $router->get('/getUserOnlineIps', [UserController::class, 'getUserOnlineIps']);
             });
 
             // User (Admin only)
