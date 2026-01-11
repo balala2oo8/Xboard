@@ -36,6 +36,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int|null $device_limit 设备限制数量
  * @property int|null $discount 折扣
  * @property int|null $last_login_at 最后登录时间
+ * @property int|null $last_sub_at 最后更新订阅时间
  * @property int|null $parent_id 父账户ID
  * @property int|null $is_admin 是否管理员
  * @property int|null $is_staff 是否员工
@@ -76,6 +77,7 @@ class User extends Authenticatable
         'commission_rate' => 'float',
         'next_reset_at' => 'timestamp',
         'last_reset_at' => 'timestamp',
+        'last_sub_at' => 'timestamp',
     ];
     protected $hidden = ['password'];
 

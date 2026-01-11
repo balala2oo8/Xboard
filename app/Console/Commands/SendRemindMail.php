@@ -65,6 +65,9 @@ class SendRemindMail extends Command
         $this->displayResults($statistics, microtime(true) - $startTime);
         $this->logResults($statistics);
 
+        // 触发邮件提醒完成钩子
+        \App\Services\Plugin\HookManager::call('mail.remind.completed', $statistics);
+
         return 0;
     }
 

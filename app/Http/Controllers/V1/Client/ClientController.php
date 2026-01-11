@@ -48,6 +48,10 @@ class ClientController extends Controller
             return response('', 403, ['Content-Type' => 'text/plain']);
         }
 
+        // 更新最后订阅时间
+        $user->last_sub_at = time();
+        $user->save();
+
         return $this->doSubscribe($request, $user);
     }
 
