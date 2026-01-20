@@ -4,6 +4,7 @@ namespace App\Services\Plugin;
 
 use App\Models\Plugin;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Cache;
 
 class PluginConfigService
 {
@@ -69,6 +70,9 @@ class PluginConfigService
                 'config' => json_encode($values),
                 'updated_at' => now()
             ]);
+
+        // 清除该插件的配置缓存
+        Cache::forget("plugin_config_{$pluginCode}");
 
         return true;
     }
