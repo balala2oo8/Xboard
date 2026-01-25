@@ -82,9 +82,14 @@ class AdminRoute
             });
             $router->group([
                 'prefix' => 'server/manage',
-                'middleware' => ['role:admin']
+                'middleware' => ['role:admin,staff']
             ], function ($router) {
                 $router->get('/getNodes', [ManageController::class, 'getNodes']);
+            });
+            $router->group([
+                'prefix' => 'server/manage',
+                'middleware' => ['role:admin']
+            ], function ($router) {
                 $router->post('/sort', [ManageController::class, 'sort']);
             });
 
