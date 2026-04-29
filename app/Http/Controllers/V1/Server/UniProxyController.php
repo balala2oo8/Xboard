@@ -54,6 +54,24 @@ class UniProxyController extends Controller
         if (!is_array($res)) {
             return $this->fail([422, 'Invalid data format']);
         }
+               
+        // 记录今天使用该服务器的所有用户（在过滤之前，使用原始 key）
+        $node = $this->getNodeInfo($request);
+        $nodeId = $node->id;
+        $today = date('Ymd');
+        $dailyUserKey = "SERVER_DAILY_USERS_{$nodeId}_{$today}";
+        
+        foreach ($res as $userId => $traffic) {
+            // $res 格式：{"user_id": [upload, download]}
+            if (is_array($traffic) && count($traffic) === 2 && is_numeric($traffic[1]) && $traffic[1] >= 1024) {
+                // 只记录下载流量 > 1KB 的用户（过滤掉延迟测试）
+                Cache::getStore()->getRedis()->sadd($dailyUserKey, $userId);
+            }
+        }
+        // 设置过期时间为2天
+        Cache::getStore()->getRedis()->expire($dailyUserKey, 86400 * 2);
+        
+        // 过滤数据用于后续处理
         $data = array_filter($res, function ($item) {
             return is_array($item)
                 && count($item) === 2
@@ -65,9 +83,7 @@ class UniProxyController extends Controller
         if (empty($data)) {
             return $this->success(true);
         }
-        $node = $this->getNodeInfo($request);
         $nodeType = $node->type;
-        $nodeId = $node->id;
 
         Cache::put(
             CacheKey::get('SERVER_' . strtoupper($nodeType) . '_ONLINE_USER', $nodeId),

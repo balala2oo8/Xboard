@@ -62,6 +62,14 @@ class TrafficResetService
 
         $this->clearUserCache($user);
         HookManager::call('traffic.reset.after', $user);
+        
+        // 触发管理员重置通知钩子（仅当是手动重置时）
+        if ($triggerSource === TrafficResetLog::SOURCE_MANUAL) {
+            HookManager::call('traffic.reset.manual', [
+                'user' => $user,
+            ]);
+        }
+        
         return true;
       });
     } catch (\Exception $e) {
