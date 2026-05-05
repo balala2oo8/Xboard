@@ -86,6 +86,7 @@ class Helper
             case 'md5': return md5($password . $email) === $hash;
             case 'sha256': return hash('sha256', $password) === $hash;
             case 'md5salt': return md5($password . $salt) === $hash;
+            case 'sha256salt': return hash('sha256', $password . $salt) === $hash;
             default: return password_verify($password, $hash);
         }
     }
@@ -142,8 +143,13 @@ class Helper
     }
 
     public static function randomPort($range): int {
-        $portRange = explode('-', $range);
-        return random_int((int)$portRange[0], (int)$portRange[1]);
+        $portRange = explode('-', (string) $range, 2);
+        $min = (int) ($portRange[0] ?? 0);
+        $max = (int) ($portRange[1] ?? $portRange[0] ?? 0);
+        if ($min > $max) {
+            [$min, $max] = [$max, $min];
+        }
+        return random_int($min, $max);
     }
 
     public static function base64EncodeUrlSafe($data)
@@ -183,10 +189,69 @@ class Helper
     public static function getIpByDomainName($domain) {
         return gethostbynamel($domain) ?: [];
     }
+    
+    public static function getTlsFingerprint($utls = null)
+    {
 
-    public static function getRandFingerprint() {
+        if (is_array($utls) || is_object($utls)) {
+            if (!data_get($utls, 'enabled')) {
+                return null;
+            }
+            $fingerprint = data_get($utls, 'fingerprint', 'chrome');
+            if ($fingerprint !== 'random') {
+                return $fingerprint;
+            }
+        }
+
         $fingerprints = ['chrome', 'firefox', 'safari', 'ios', 'edge', 'qq'];
         return Arr::random($fingerprints);
+    }
+
+    public static function normalizeEchSettings($ech = null): ?array
+    {
+        if (!is_array($ech) && !is_object($ech)) {
+            return null;
+        }
+
+        if (!data_get($ech, 'enabled')) {
+            return null;
+        }
+
+        return array_filter([
+            'enabled' => true,
+            'config' => self::trimToNull(data_get($ech, 'config')),
+            'query_server_name' => self::trimToNull(data_get($ech, 'query_server_name')),
+            'key' => self::trimToNull(data_get($ech, 'key')),
+            'key_path' => self::trimToNull(data_get($ech, 'key_path')),
+            'config_path' => self::trimToNull(data_get($ech, 'config_path')),
+        ], static fn($value) => $value !== null);
+    }
+
+    public static function toMihomoEchConfig(?string $config): ?string
+    {
+        $config = self::trimToNull($config);
+        if (!$config) {
+            return null;
+        }
+
+        if (str_starts_with($config, '-----BEGIN')) {
+            if (preg_match('/-----BEGIN ECH CONFIGS-----\s*(.*?)\s*-----END ECH CONFIGS-----/s', $config, $matches)) {
+                return preg_replace('/\s+/', '', $matches[1]);
+            }
+            return null;
+        }
+
+        return preg_replace('/\s+/', '', $config);
+    }
+
+    public static function trimToNull($value): ?string
+    {
+        if (!is_string($value)) {
+            return null;
+        }
+
+        $value = trim($value);
+        return $value === '' ? null : $value;
     }
 
     public static function encodeURIComponent($str) {
@@ -211,5 +276,15 @@ class Helper
     public static function transferToGB(float $transfer_enable): float
     {
         return $transfer_enable / 1073741824;
+    }
+
+    /**
+     * 转义 Telegram Markdown 特殊字符
+     * @param string $text
+     * @return string
+     */
+    public static function escapeMarkdown(string $text): string
+    {
+        return str_replace(['_', '*', '`', '['], ['\_', '\*', '\`', '\['], $text);
     }
 }

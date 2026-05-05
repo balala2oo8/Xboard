@@ -7,7 +7,7 @@ RUN CFLAGS="-O0" install-php-extensions pcntl && \
     CFLAGS="-O0 -g0" install-php-extensions bcmath && \
     install-php-extensions zip && \
     install-php-extensions redis && \
-    apk --no-cache add shadow sqlite mysql-client mysql-dev mariadb-connector-c git patch supervisor redis && \
+    apk --no-cache add shadow sqlite mysql-client mysql-dev mariadb-connector-c git patch supervisor redis caddy && \
     addgroup -S -g 1000 www && adduser -S -G www -u 1000 www && \
     (getent group redis || addgroup -S redis) && \
     (getent passwd redis || adduser -S -G redis -H -h /data redis)
@@ -17,19 +17,22 @@ WORKDIR /www
 COPY .docker /
 
 # Add build arguments
-ARG CACHEBUST
-ARG REPO_URL
-ARG BRANCH_NAME
+ARG CACHEBUST=1
+ARG REPO_URL=https://github.com/cedar2025/Xboard
+ARG BRANCH_NAME=master
 
 RUN echo "Attempting to clone branch: ${BRANCH_NAME} from ${REPO_URL} with CACHEBUST: ${CACHEBUST}" && \
     rm -rf ./* && \
     rm -rf .git && \
     git config --global --add safe.directory /www && \
-    git clone --depth 1 --branch ${BRANCH_NAME} ${REPO_URL} .
+    git clone --depth 1 --branch ${BRANCH_NAME} ${REPO_URL} . && \
+    git submodule update --init --recursive --force
 
 COPY .docker/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY .docker/caddy/Caddyfile /etc/caddy/Caddyfile
+COPY .docker/php/zz-xboard.ini /usr/local/etc/php/conf.d/zz-xboard.ini
 
-RUN composer install --no-cache --no-dev \
+RUN composer install --no-cache --no-dev --no-security-blocking \
     && php artisan storage:link \
     && chown -R www:www /www \
     && chmod -R 775 /www \
@@ -38,7 +41,12 @@ RUN composer install --no-cache --no-dev \
     
 ENV ENABLE_WEB=true \
     ENABLE_HORIZON=true \
-    ENABLE_REDIS=false 
+    ENABLE_REDIS=true \
+    ENABLE_WS_SERVER=true \
+    ENABLE_CADDY=true
 
 EXPOSE 7001
+COPY .docker/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"] 
