@@ -375,6 +375,7 @@ class StatController extends Controller
             'data' => [
                 // 收入相关
                 'todayIncome' => $todayIncome,
+                'yesterdayIncome' => $yesterdayIncome,
                 'dayIncomeGrowth' => $dayIncomeGrowth,
                 'currentMonthIncome' => $currentMonthIncome,
                 'lastMonthIncome' => $lastMonthIncome,
@@ -389,6 +390,7 @@ class StatController extends Controller
 
                 // 用户相关
                 'currentMonthNewUsers' => $currentMonthNewUsers,
+                'lastMonthNewUsers' => $lastMonthNewUsers,
                 'totalUsers' => $totalUsers,
                 'activeUsers' => $activeUsers,
                 'userGrowth' => $userGrowth,
