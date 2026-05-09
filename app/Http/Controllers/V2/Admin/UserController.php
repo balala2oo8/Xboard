@@ -12,7 +12,7 @@ use App\Models\User;
 use App\Services\AuthService;
 use App\Services\NodeSyncService;
 use App\Services\UserService;
-use App\Services\UserOnlineService;
+use App\Services\DeviceStateService;
 use App\Traits\QueryOperators;
 use App\Utils\Helper;
 use Illuminate\Database\Eloquent\Builder;
@@ -709,15 +709,16 @@ class UserController extends Controller
         //    return $this->fail([404, '用户不存在']);
         //}
 
-        // 尝试从缓存获取
-        $result = UserOnlineService::getUserDevices($userId);
+        // 获取在线设备详细信息
+        $details = app(DeviceStateService::class)->getUserDeviceDetails($userId);
 
         // 组装返回数据
         $data = [
             'user_id' => $userId,
             'device_limit_mode' => admin_setting('device_limit_mode', 0),
-            'online_count' => $result['total_count'],
-            'devices' => $result['devices']
+            'online_count' => count($details['devices']),
+            'devices' => $details['devices'],
+            'last_online_at' => $details['last_online_at'],
         ];
 
         return $this->success($data);

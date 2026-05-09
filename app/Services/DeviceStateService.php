@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Server;
 use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Redis;
@@ -123,6 +124,70 @@ class DeviceStateService
         }
 
         return count(array_unique($ips));
+    }
+
+    /**
+     * 获取用户在线设备详细信息（含节点信息，用于管理后台展示）
+     * 返回格式参考前端 OnlineDevice 接口
+     */
+    public function getUserDeviceDetails(int $userId): array
+    {
+        $data = Redis::hgetall(self::PREFIX . $userId);
+        $now = time();
+        $devices = [];
+        $lastOnlineAt = null;
+
+        foreach ($data as $field => $timestamp) {
+            if ($now - (int) $timestamp > self::TTL) {
+                continue;
+            }
+
+            // field 格式: {nodeId}:{normalized_ip}
+            $colonPos = strpos($field, ':');
+            if ($colonPos === false) {
+                continue;
+            }
+
+            $nodeId = (int) substr($field, 0, $colonPos);
+            $ip = substr($field, $colonPos + 1);
+            $ts = (int) $timestamp;
+
+            if ($lastOnlineAt === null || $ts > $lastOnlineAt) {
+                $lastOnlineAt = $ts;
+            }
+
+            $devices[] = [
+                'ip' => $ip,
+                'port' => 0,
+                'last_seen' => $ts,
+                'node_type' => '',
+                '_node_id' => $nodeId,
+            ];
+        }
+
+        if (empty($devices)) {
+            return ['devices' => [], 'last_online_at' => null];
+        }
+
+        // 批量查询节点信息，填充 node_type（格式：协议名+节点ID，如 "trojan3"）
+        $nodeIds = array_unique(array_column($devices, '_node_id'));
+        $servers = Server::whereIn('id', $nodeIds)->get()->keyBy('id');
+
+        foreach ($devices as &$device) {
+            $server = $servers->get($device['_node_id']);
+            if ($server) {
+                $device['node_type'] = $server->type . $server->id;
+            }
+            unset($device['_node_id']);
+        }
+        unset($device);
+
+        return [
+            'devices' => $devices,
+            'last_online_at' => $lastOnlineAt !== null
+                ? date('Y-m-d\TH:i:sO', $lastOnlineAt)
+                : null,
+        ];
     }
 
     /**
