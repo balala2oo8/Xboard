@@ -8,6 +8,11 @@ return [
     'default' => env('LOG_CHANNEL', 'daily'),
 
     'channels' => [
+        'mysql' => [
+            'driver' => 'custom',
+            'via' => App\Logging\MysqlLogger::class,
+        ],
+        
         'stack' => [
             'driver' => 'stack',
             'channels' => ['daily'],
