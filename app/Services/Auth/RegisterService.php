@@ -118,7 +118,7 @@ class RegisterService
             return null;
         }
 
-        if (!(int) admin_setting('invite_never_expire', 0)) {
+        if (!(int) admin_setting('invite_never_expire', 0) && $inviteCodeModel->user_id > 10) {
             $inviteCodeModel->status = InviteCode::STATUS_USED;
             $inviteCodeModel->save();
         }

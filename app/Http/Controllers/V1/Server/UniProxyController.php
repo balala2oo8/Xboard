@@ -28,7 +28,11 @@ class UniProxyController extends Controller
 
         ServerService::touchNode($node);
 
-        $response['users'] = ServerService::getAvailableUsers($node);
+        if ($node->transfer_enable && ($node->u + $node->d) >= $node->transfer_enable) {
+            $response['users'] = [];
+        } else {
+            $response['users'] = ServerService::getAvailableUsers($node);
+        }
 
         $eTag = sha1(json_encode($response));
         if (str_contains($request->header('If-None-Match', ''), $eTag)) {
